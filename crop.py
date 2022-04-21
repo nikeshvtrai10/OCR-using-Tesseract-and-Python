@@ -3,6 +3,7 @@ import re
 import cv2
 import argparse
 import pytesseract
+from pytesseract import Output
 # Initializing the list for storing the coordinates
 ref_coord = []
 
@@ -13,6 +14,7 @@ def click_and_crop(event, x, y, flags, param):
         print(ref_coord)
     elif event == cv2.EVENT_LBUTTONUP:
         ref_coord.append((x, y))
+
 
 # Add argument parser to read the image path
 ap = argparse.ArgumentParser()
@@ -25,6 +27,7 @@ cv2.setMouseCallback("image", click_and_crop)
 
 # Read the image
 frame = cv2.imread(args["image"])
+frame_copy = frame.copy()
 
 # Initializing x1, y1, x2, y2
 (x1, y1) = (0, 0)
@@ -48,8 +51,10 @@ while True:
         break
 # Closing all open windows
 cv2.destroyAllWindows()
-ocr_img = frame[y1:y2, x1:x2]
-data =  pytesseract.image_to_string(ocr_img, config='--oem 3 --psm 6 tessedit_char_whitelist=0123456789 outputbase digits')
-# data = re.sub('[^A-Za-z0-9-]+', '', data)
+image_roi = frame[y1:y2, x1:x2]
+# data =  pytesseract.image_to_string(image_roi, config='--oem 3 --psm 6 tessedit_char_whitelist=0123456789 outputbase digits')
+data = pytesseract.image_to_data(image_roi, output_type=Output.DICT)
 print(data)
+cv2.imshow("Selected Region of Interest - Press any key to proceed", image_roi) 
+cv2.waitKey(0)
 
